@@ -1,0 +1,799 @@
+
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>🎈 فرقع البالون الصحيح</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@700;800;900&display=swap');
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; user-select: none; -webkit-tap-highlight-color: transparent; }
+        
+        body { 
+            height: 100vh; 
+            overflow: hidden; 
+            background: linear-gradient(180deg, #87CEEB 0%, #E0F6FF 50%, #98FB98 85%, #228B22 100%);
+        }
+        
+        .game { width: 100%; height: 100%; position: relative; overflow: hidden; }
+        
+        /* Sun */
+        .sun {
+            position: absolute;
+            top: 5%; right: 8%;
+            width: 90px; height: 90px;
+            background: radial-gradient(circle, #FFEB3B, #FFC107);
+            border-radius: 50%;
+            box-shadow: 0 0 60px 20px rgba(255,235,59,0.5), 0 0 120px 40px rgba(255,193,7,0.3);
+            animation: sunPulse 3s ease-in-out infinite;
+        }
+        
+        @keyframes sunPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        /* Clouds */
+        .clouds { position: absolute; top: 0; left: 0; width: 200%; height: 35%; animation: drift 60s linear infinite; }
+        .cloud { position: absolute; font-size: 4.5rem; opacity: 0.9; filter: drop-shadow(0 5px 10px rgba(0,0,0,0.08)); }
+        @keyframes drift { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+        
+        /* Grass */
+        .grass {
+            position: absolute;
+            bottom: 0; left: 0;
+            width: 100%; height: 18%;
+            background: linear-gradient(180deg, #4CAF50 0%, #388E3C 50%, #2E7D32 100%);
+            border-radius: 100% 100% 0 0 / 50% 50% 0 0;
+        }
+        
+        .flowers {
+            position: absolute;
+            bottom: 13%; left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-around;
+            padding: 0 5%;
+        }
+        
+        .flower {
+            font-size: 2.2rem;
+            animation: sway 2.5s ease-in-out infinite;
+            animation-delay: var(--d);
+        }
+        
+        @keyframes sway { 0%, 100% { transform: rotate(-8deg); } 50% { transform: rotate(8deg); } }
+        
+        /* HUD */
+        .hud {
+            position: absolute;
+            top: 15px; left: 15px; right: 15px;
+            display: flex;
+            justify-content: space-between;
+            z-index: 100;
+        }
+        
+        .hud-box {
+            background: rgba(255,255,255,0.95);
+            border-radius: 50px;
+            padding: 12px 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+        }
+        
+        .hud-icon { font-size: 1.8rem; }
+        .hud-num { font-size: 1.8rem; font-weight: 900; color: #FFC107; text-shadow: 1px 1px 0 #E6A800; }
+        
+        .lives { display: flex; gap: 5px; }
+        .heart { font-size: 1.8rem; transition: all 0.4s; filter: drop-shadow(0 2px 4px rgba(255,0,0,0.3)); }
+        .heart.lost { transform: scale(0.5); filter: grayscale(1); opacity: 0.3; }
+        .heart.pop { animation: heartPop 0.5s ease-out forwards; }
+        @keyframes heartPop { 0% { transform: scale(1); } 30% { transform: scale(1.5); } 100% { transform: scale(0.5); filter: grayscale(1); opacity: 0.3; } }
+        
+        /* Question */
+        .question {
+            position: absolute;
+            top: 85px; left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #7C4DFF, #536DFE);
+            border-radius: 25px;
+            padding: 20px 35px;
+            text-align: center;
+            box-shadow: 0 12px 40px rgba(124,77,255,0.4);
+            z-index: 90;
+            max-width: 90%;
+        }
+        
+        .q-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255,255,255,0.2);
+            padding: 8px 18px;
+            border-radius: 20px;
+            margin-bottom: 12px;
+            font-size: 1rem;
+            color: rgba(255,255,255,0.9);
+        }
+        
+        .q-text { font-size: 1.5rem; font-weight: 800; color: white; text-shadow: 0 2px 8px rgba(0,0,0,0.2); line-height: 1.6; }
+        
+        /* Progress */
+        .progress {
+            position: absolute;
+            bottom: 18px; left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 12px;
+            background: rgba(255,255,255,0.9);
+            padding: 12px 25px;
+            border-radius: 50px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+            z-index: 90;
+        }
+        
+        .dot {
+            width: 22px; height: 22px;
+            border-radius: 50%;
+            background: #E0E0E0;
+            border: 3px solid #BDBDBD;
+            transition: all 0.4s;
+        }
+        
+        .dot.now { background: #FFC107; border-color: #FFB300; box-shadow: 0 0 15px rgba(255,193,7,0.6); animation: dotPulse 1s ease-in-out infinite; }
+        .dot.ok { background: #4CAF50; border-color: #43A047; box-shadow: 0 0 10px rgba(76,175,80,0.5); }
+        .dot.bad { background: #F44336; border-color: #E53935; }
+        
+        @keyframes dotPulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.2); } }
+        
+        /* Balloons Area */
+        .balloons { position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; z-index: 50; }
+        
+        /* Balloon */
+        .balloon {
+            position: absolute;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        
+        .balloon:hover { transform: scale(1.08); }
+        .balloon:active { transform: scale(0.95); }
+        
+        .b-body {
+            width: 140px; height: 170px;
+            border-radius: 50% 50% 50% 50% / 55% 55% 45% 45%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 15px;
+            box-shadow: 
+                inset -25px -10px 40px rgba(255,255,255,0.35),
+                inset 15px 15px 30px rgba(0,0,0,0.08),
+                0 25px 50px rgba(0,0,0,0.2);
+            position: relative;
+        }
+        
+        .b-body::before {
+            content: '';
+            position: absolute;
+            top: 18%; left: 22%;
+            width: 30px; height: 40px;
+            background: rgba(255,255,255,0.45);
+            border-radius: 50%;
+            transform: rotate(-25deg);
+        }
+        
+        .b-body::after {
+            content: '';
+            position: absolute;
+            bottom: -18px; left: 50%;
+            transform: translateX(-50%);
+            border-left: 14px solid transparent;
+            border-right: 14px solid transparent;
+            border-top: 22px solid;
+        }
+        
+        .b-string {
+            position: absolute;
+            bottom: -80px; left: 50%;
+            transform: translateX(-50%);
+            width: 3px; height: 70px;
+            background: linear-gradient(180deg, #999, #666);
+            border-radius: 3px;
+            animation: stringWave 3s ease-in-out infinite;
+        }
+        
+        .b-string::after {
+            content: '🎀';
+            position: absolute;
+            top: -5px; left: 50%;
+            transform: translateX(-50%);
+            font-size: 1rem;
+        }
+        
+        @keyframes stringWave { 0%, 100% { transform: translateX(-50%) rotate(-3deg); } 50% { transform: translateX(-50%) rotate(3deg); } }
+        
+        .b-text { 
+            font-size: 1.05rem; 
+            font-weight: 700; 
+            color: white; 
+            text-shadow: 0 2px 5px rgba(0,0,0,0.3); 
+            line-height: 1.4; 
+            z-index: 2;
+            padding: 5px;
+        }
+        
+        /* Balloon Colors - All beautiful colors, no meaning */
+        .balloon.pink .b-body { background: linear-gradient(135deg, #FF6B9D, #E91E8C); }
+        .balloon.pink .b-body::after { border-top-color: #E91E8C; }
+        
+        .balloon.blue .b-body { background: linear-gradient(135deg, #64B5F6, #1976D2); }
+        .balloon.blue .b-body::after { border-top-color: #1976D2; }
+        
+        .balloon.orange .b-body { background: linear-gradient(135deg, #FFB74D, #F57C00); }
+        .balloon.orange .b-body::after { border-top-color: #F57C00; }
+        
+        .balloon.purple .b-body { background: linear-gradient(135deg, #BA68C8, #7B1FA2); }
+        .balloon.purple .b-body::after { border-top-color: #7B1FA2; }
+        
+        .balloon.teal .b-body { background: linear-gradient(135deg, #4DD0E1, #0097A7); }
+        .balloon.teal .b-body::after { border-top-color: #0097A7; }
+        
+        .balloon.yellow .b-body { background: linear-gradient(135deg, #FFF176, #FBC02D); }
+        .balloon.yellow .b-body::after { border-top-color: #FBC02D; }
+        .balloon.yellow .b-text { color: #333; text-shadow: none; }
+        
+        .balloon.coral .b-body { background: linear-gradient(135deg, #FF8A80, #E53935); }
+        .balloon.coral .b-body::after { border-top-color: #E53935; }
+        
+        .balloon.lime .b-body { background: linear-gradient(135deg, #AED581, #7CB342); }
+        .balloon.lime .b-body::after { border-top-color: #7CB342; }
+        
+        /* Floating animation - SLOWER */
+        .balloon.float {
+            animation: floatUp var(--dur) linear forwards, wobble 4s ease-in-out infinite;
+        }
+        
+        @keyframes floatUp {
+            0% { bottom: -280px; }
+            100% { bottom: 120%; }
+        }
+        
+        @keyframes wobble {
+            0%, 100% { transform: translateX(-12px) rotate(-3deg); }
+            50% { transform: translateX(12px) rotate(3deg); }
+        }
+        
+        /* Pop */
+        .balloon.pop {
+            animation: popAnim 0.4s ease-out forwards;
+            pointer-events: none;
+        }
+        
+        @keyframes popAnim {
+            0% { transform: scale(1); opacity: 1; }
+            30% { transform: scale(1.3); }
+            100% { transform: scale(0); opacity: 0; }
+        }
+        
+        /* Feedback */
+        .feedback {
+            position: fixed;
+            top: 45%; left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 9rem;
+            z-index: 200;
+            pointer-events: none;
+            opacity: 0;
+        }
+        
+        .feedback.show { animation: fbAnim 0.8s ease-out forwards; }
+        
+        @keyframes fbAnim {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0) rotate(-20deg); }
+            35% { opacity: 1; transform: translate(-50%, -50%) scale(1.3) rotate(10deg); }
+            65% { transform: translate(-50%, -50%) scale(1) rotate(0); }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(1.5) translateY(-40px); }
+        }
+        
+        /* Particles */
+        .particle {
+            position: fixed;
+            pointer-events: none;
+            z-index: 150;
+            font-size: 1.8rem;
+        }
+        
+        /* Score popup */
+        .pts {
+            position: fixed;
+            font-size: 2.8rem;
+            font-weight: 900;
+            color: #FFC107;
+            text-shadow: 2px 2px 0 #E6A800, 0 0 20px rgba(255,193,7,0.6);
+            pointer-events: none;
+            z-index: 160;
+        }
+        
+        /* Screens */
+        .screen {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: linear-gradient(135deg, #7C4DFF, #536DFE, #448AFF);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 500;
+            padding: 20px;
+        }
+        
+        .screen.hidden { display: none; }
+        
+        .s-icon { font-size: 8rem; margin-bottom: 15px; animation: bounce 2s ease-in-out infinite; }
+        @keyframes bounce { 0%, 100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-25px) scale(1.1); } }
+        
+        .s-title { font-size: 3rem; font-weight: 900; color: white; text-shadow: 0 4px 15px rgba(0,0,0,0.2); margin-bottom: 15px; text-align: center; }
+        
+        .s-hint {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            background: rgba(255,255,255,0.15);
+            padding: 25px 40px;
+            border-radius: 25px;
+            margin: 20px 0;
+        }
+        
+        .hint-balloons {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .hint-b {
+            width: 50px; height: 62px;
+            border-radius: 50% 50% 50% 50% / 55% 55% 45% 45%;
+            box-shadow: inset -8px -4px 15px rgba(255,255,255,0.3), 0 8px 20px rgba(0,0,0,0.15);
+        }
+        
+        .hint-txt { font-size: 1.3rem; color: white; font-weight: 700; text-align: center; line-height: 1.6; }
+        
+        .btn {
+            background: linear-gradient(135deg, #FFC107, #FF9800);
+            border: none;
+            border-radius: 60px;
+            padding: 20px 60px;
+            font-size: 1.8rem;
+            font-weight: 900;
+            color: #333;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 10px 35px rgba(255,152,0,0.4), 0 5px 0 #E68A00;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .btn:hover { transform: translateY(-5px) scale(1.05); box-shadow: 0 18px 50px rgba(255,152,0,0.5), 0 8px 0 #E68A00; }
+        .btn:active { transform: translateY(2px); box-shadow: 0 4px 15px rgba(255,152,0,0.4), 0 2px 0 #E68A00; }
+        
+        .final-score { font-size: 6rem; font-weight: 900; color: #FFC107; text-shadow: 0 5px 0 #E68A00; margin: 10px 0; }
+        
+        .stars { display: flex; gap: 12px; margin: 15px 0; }
+        .star { font-size: 3.5rem; opacity: 0.25; filter: grayscale(1); transition: all 0.5s; }
+        .star.on { opacity: 1; filter: none; animation: starOn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        @keyframes starOn { 0% { transform: scale(0) rotate(-180deg); } 60% { transform: scale(1.4) rotate(20deg); } 100% { transform: scale(1) rotate(0); } }
+        
+        /* Deco balloons */
+        .deco { position: absolute; font-size: 4rem; opacity: 0.25; animation: decoFloat 4s ease-in-out infinite; }
+        @keyframes decoFloat { 0%, 100% { transform: translateY(0) rotate(-5deg); } 50% { transform: translateY(-30px) rotate(5deg); } }
+        
+        /* Mobile */
+        @media (max-width: 600px) {
+            .b-body { width: 115px; height: 140px; padding: 12px; }
+            .b-text { font-size: 0.9rem; }
+            .q-text { font-size: 1.2rem; }
+            .s-title { font-size: 2.2rem; }
+            .s-icon { font-size: 6rem; }
+            .btn { padding: 18px 45px; font-size: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="game">
+        <div class="sun"></div>
+        
+        <div class="clouds">
+            <span class="cloud" style="left:5%;top:8%">☁️</span>
+            <span class="cloud" style="left:22%;top:4%">☁️</span>
+            <span class="cloud" style="left:42%;top:12%">☁️</span>
+            <span class="cloud" style="left:62%;top:6%">☁️</span>
+            <span class="cloud" style="left:82%;top:10%">☁️</span>
+            <span class="cloud" style="left:105%;top:5%">☁️</span>
+            <span class="cloud" style="left:125%;top:14%">☁️</span>
+            <span class="cloud" style="left:145%;top:7%">☁️</span>
+        </div>
+        
+        <div class="grass"></div>
+        <div class="flowers">
+            <span class="flower" style="--d:0s">🌸</span>
+            <span class="flower" style="--d:0.4s">🌼</span>
+            <span class="flower" style="--d:0.2s">🌺</span>
+            <span class="flower" style="--d:0.6s">🌷</span>
+            <span class="flower" style="--d:0.3s">🌻</span>
+            <span class="flower" style="--d:0.5s">🌸</span>
+            <span class="flower" style="--d:0.1s">🌼</span>
+        </div>
+        
+        <div class="hud">
+            <div class="hud-box">
+                <span class="hud-icon">⭐</span>
+                <span class="hud-num" id="score">0</span>
+            </div>
+            <div class="hud-box">
+                <div class="lives">
+                    <span class="heart" id="h0">❤️</span>
+                    <span class="heart" id="h1">❤️</span>
+                    <span class="heart" id="h2">❤️</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="question">
+            <div class="q-badge">
+                <span>🎤</span>
+                <span>عند تقديم العرض</span>
+            </div>
+            <div class="q-text" id="qText">اختر الإجابة الصحيحة!</div>
+        </div>
+        
+        <div class="balloons" id="balloons"></div>
+        
+        <div class="progress" id="progress"></div>
+        
+        <div class="feedback" id="fb"></div>
+    </div>
+    
+    <!-- Start -->
+    <div class="screen" id="startScreen">
+        <span class="deco" style="left:5%;top:20%">🎈</span>
+        <span class="deco" style="left:12%;top:60%;animation-delay:0.5s">🎈</span>
+        <span class="deco" style="right:8%;top:25%;animation-delay:1s">🎈</span>
+        <span class="deco" style="right:15%;top:65%;animation-delay:1.5s">🎈</span>
+        
+        <div class="s-icon">🎈</div>
+        <h1 class="s-title">فرقع البالون الصحيح!</h1>
+        
+        <div class="s-hint">
+            <div class="hint-balloons">
+                <div class="hint-b" style="background: linear-gradient(135deg, #FF6B9D, #E91E8C);"></div>
+                <div class="hint-b" style="background: linear-gradient(135deg, #64B5F6, #1976D2);"></div>
+                <div class="hint-b" style="background: linear-gradient(135deg, #FFB74D, #F57C00);"></div>
+                <div class="hint-b" style="background: linear-gradient(135deg, #BA68C8, #7B1FA2);"></div>
+            </div>
+            <div class="hint-txt">
+                📖 اقرأ السؤال جيداً<br>
+                👆 ثم فرقع البالون الصحيح!
+            </div>
+        </div>
+        
+        <button class="btn" onclick="start()">
+            <span>🚀</span>
+            <span>ابدأ!</span>
+        </button>
+    </div>
+    
+    <!-- Game Over -->
+    <div class="screen hidden" id="overScreen">
+        <div class="s-icon">😢</div>
+        <h1 class="s-title">حاول مرة أخرى!</h1>
+        <div class="final-score" id="overScore">0</div>
+        <button class="btn" onclick="restart()">
+            <span>🔄</span>
+            <span>أعد</span>
+        </button>
+    </div>
+    
+    <!-- Win -->
+    <div class="screen hidden" id="winScreen">
+        <div class="s-icon">🎉</div>
+        <h1 class="s-title">أحسنت!</h1>
+        <div class="stars">
+            <span class="star" id="s0">⭐</span>
+            <span class="star" id="s1">⭐</span>
+            <span class="star" id="s2">⭐</span>
+        </div>
+        <div class="final-score" id="winScore">0</div>
+        <button class="btn" onclick="restart()">
+            <span>🔄</span>
+            <span>أعد</span>
+        </button>
+    </div>
+
+    <script>
+        // 5 Questions from the curriculum - Presentation Delivery Tips
+        const QS = [
+            { 
+                q: "ماذا يجب أن تعرف قبل التقديم؟",
+                ok: "طبيعة جمهورك",
+                no: "لون ملابسك"
+            },
+            { 
+                q: "كيف يجب أن تكون أثناء التقديم؟",
+                ok: "إيجابياً ونشيطاً ومتحمساً",
+                no: "هادئاً وصامتاً"
+            },
+            { 
+                q: "ماذا تتحقق منه أثناء العرض؟",
+                ok: "أن الجمهور يسمعك ويراك",
+                no: "أن هاتفك مشحون"
+            },
+            { 
+                q: "كيف تحسّن تتابع العرض؟",
+                ok: "غيّر نغمة صوتك",
+                no: "اقرأ بسرعة كبيرة"
+            },
+            { 
+                q: "أين يجب أن تقف؟",
+                ok: "في مكان يراك الجميع",
+                no: "خلف جهاز العرض"
+            }
+        ];
+        
+        // Beautiful balloon colors - NO meaning attached
+        const COLORS = ['pink', 'blue', 'orange', 'purple', 'teal', 'yellow', 'coral', 'lime'];
+        
+        let idx = 0, score = 0, lives = 3, on = false, bList = [];
+        
+        function shuffle(arr) {
+            const a = [...arr];
+            for (let i = a.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [a[i], a[j]] = [a[j], a[i]];
+            }
+            return a;
+        }
+        
+        function initDots() {
+            const p = document.getElementById('progress');
+            p.innerHTML = '';
+            for (let i = 0; i < QS.length; i++) {
+                const d = document.createElement('div');
+                d.className = 'dot' + (i === 0 ? ' now' : '');
+                d.id = 'd' + i;
+                p.appendChild(d);
+            }
+        }
+        
+        function showQ() {
+            if (idx >= QS.length) { win(); return; }
+            
+            document.getElementById('qText').textContent = QS[idx].q;
+            document.querySelectorAll('.dot').forEach((d, i) => {
+                d.classList.remove('now');
+                if (i === idx) d.classList.add('now');
+            });
+            
+            clear();
+            setTimeout(() => spawn(QS[idx]), 400);
+        }
+        
+        function clear() {
+            bList.forEach(b => b.el && b.el.remove());
+            bList = [];
+        }
+        
+        function spawn(q) {
+            const area = document.getElementById('balloons');
+            
+            // Random colors for both balloons
+            const colors = shuffle(COLORS);
+            
+            const okB = makeBalloon(q.ok, true, colors[0]);
+            const noB = makeBalloon(q.no, false, colors[1]);
+            
+            // Random positions - left or right
+            const pos = Math.random() > 0.5 ? [15, 55] : [55, 15];
+            
+            okB.x = pos[0] + Math.random() * 10;
+            noB.x = pos[1] + Math.random() * 10;
+            
+            // SLOWER speed - 14-18 seconds to cross screen
+            okB.dur = 14 + Math.random() * 4;
+            noB.dur = 14 + Math.random() * 4;
+            
+            okB.el.style.left = okB.x + '%';
+            noB.el.style.left = noB.x + '%';
+            okB.el.style.setProperty('--dur', okB.dur + 's');
+            noB.el.style.setProperty('--dur', noB.dur + 's');
+            
+            area.appendChild(okB.el);
+            area.appendChild(noB.el);
+            
+            setTimeout(() => {
+                okB.el.classList.add('float');
+                noB.el.classList.add('float');
+            }, 50);
+            
+            bList = [okB, noB];
+        }
+        
+        function makeBalloon(txt, isOk, color) {
+            const b = document.createElement('div');
+            b.className = 'balloon ' + color;
+            b.innerHTML = `
+                <div class="b-body">
+                    <span class="b-text">${txt}</span>
+                </div>
+                <div class="b-string"></div>
+            `;
+            
+            b.onclick = () => pop(b, isOk);
+            
+            return { el: b, ok: isOk };
+        }
+        
+        function pop(el, isOk) {
+            if (!on) return;
+            
+            const balloon = bList.find(b => b.el === el);
+            if (!balloon || el.classList.contains('pop')) return;
+            
+            on = false;
+            el.classList.remove('float');
+            el.classList.add('pop');
+            
+            const rect = el.getBoundingClientRect();
+            const cx = rect.left + rect.width / 2;
+            const cy = rect.top + rect.height / 2;
+            
+            const fb = document.getElementById('fb');
+            const dot = document.getElementById('d' + idx);
+            
+            if (isOk) {
+                score += 20;
+                document.getElementById('score').textContent = score;
+                
+                fb.textContent = '✅';
+                fb.className = 'feedback show';
+                
+                dot.classList.add('ok');
+                
+                particles(cx, cy, true);
+                showPts(cx, cy);
+                
+            } else {
+                lives--;
+                
+                fb.textContent = '❌';
+                fb.className = 'feedback show';
+                
+                dot.classList.add('bad');
+                
+                const h = document.getElementById('h' + lives);
+                h.classList.add('pop');
+                setTimeout(() => { h.classList.remove('pop'); h.classList.add('lost'); }, 500);
+                
+                particles(cx, cy, false);
+                
+                if (lives <= 0) {
+                    setTimeout(gameOver, 800);
+                    return;
+                }
+            }
+            
+            setTimeout(() => {
+                fb.className = 'feedback';
+                idx++;
+                on = true;
+                showQ();
+            }, 1200);
+        }
+        
+        function particles(x, y, good) {
+            const em = good ? ['⭐', '✨', '🎉', '💫'] : ['💔', '😢'];
+            const n = good ? 12 : 6;
+            
+            for (let i = 0; i < n; i++) {
+                const p = document.createElement('div');
+                p.className = 'particle';
+                p.textContent = em[Math.floor(Math.random() * em.length)];
+                p.style.left = x + 'px';
+                p.style.top = y + 'px';
+                document.body.appendChild(p);
+                
+                const a = (Math.PI * 2 * i / n) + Math.random() * 0.5;
+                const sp = 100 + Math.random() * 120;
+                let vx = Math.cos(a) * sp, vy = Math.sin(a) * sp - 80;
+                let px = 0, py = 0, op = 1, g = 0;
+                
+                const run = () => {
+                    g += 5;
+                    px += vx * 0.016;
+                    py += (vy + g) * 0.016;
+                    op -= 0.025;
+                    p.style.transform = `translate(${px}px, ${py}px) rotate(${px}deg)`;
+                    p.style.opacity = Math.max(0, op);
+                    if (op > 0) requestAnimationFrame(run);
+                    else p.remove();
+                };
+                setTimeout(() => requestAnimationFrame(run), i * 15);
+            }
+        }
+        
+        function showPts(x, y) {
+            const p = document.createElement('div');
+            p.className = 'pts';
+            p.textContent = '+20';
+            p.style.left = x + 'px';
+            p.style.top = y + 'px';
+            document.body.appendChild(p);
+            
+            let py = 0, op = 1;
+            const run = () => {
+                py -= 2.5;
+                op -= 0.025;
+                p.style.transform = `translate(-50%, -50%) translateY(${py}px)`;
+                p.style.opacity = op;
+                if (op > 0) requestAnimationFrame(run);
+                else p.remove();
+            };
+            requestAnimationFrame(run);
+        }
+        
+        function start() {
+            document.getElementById('startScreen').classList.add('hidden');
+            idx = 0; score = 0; lives = 3; on = true;
+            
+            document.querySelectorAll('.heart').forEach(h => h.classList.remove('lost', 'pop'));
+            document.getElementById('score').textContent = '0';
+            
+            initDots();
+            showQ();
+        }
+        
+        function gameOver() {
+            on = false;
+            clear();
+            document.getElementById('overScore').textContent = score;
+            document.getElementById('overScreen').classList.remove('hidden');
+        }
+        
+        function win() {
+            on = false;
+            clear();
+            document.getElementById('winScore').textContent = score;
+            document.getElementById('winScreen').classList.remove('hidden');
+            
+            const pct = score / (QS.length * 20);
+            setTimeout(() => document.getElementById('s0').classList.add('on'), 300);
+            if (pct >= 0.6) setTimeout(() => document.getElementById('s1').classList.add('on'), 600);
+            if (pct >= 1) setTimeout(() => document.getElementById('s2').classList.add('on'), 900);
+        }
+        
+        function restart() {
+            document.getElementById('overScreen').classList.add('hidden');
+            document.getElementById('winScreen').classList.add('hidden');
+            document.querySelectorAll('.star').forEach(s => s.classList.remove('on'));
+            start();
+        }
+        
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                if (!document.getElementById('startScreen').classList.contains('hidden')) start();
+                else if (!document.getElementById('overScreen').classList.contains('hidden') || 
+                         !document.getElementById('winScreen').classList.contains('hidden')) restart();
+            }
+        });
+    </script>
+</body>
+</html>
